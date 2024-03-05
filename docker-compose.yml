@@ -6,9 +6,13 @@ services:
       POSTGRES_PASSWORD: password123
       POSTGRES_USER: user123
       POSTGRES_DB: db123
+    volumes:
+      - resumeData:/var/lib/postgresql/data
   app:
     image: my-node-app
     ports:
       - 13000:8080
     expose:
       - 13000
+volumes:
+  resumeData:

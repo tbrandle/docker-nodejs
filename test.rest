@@ -1,5 +1,5 @@
 ###
-GET http://localhost:13000/
+GET http://localhost:13000/setup
 ###
 GET http://localhost:13000
 
