@@ -13,38 +13,68 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const db_1 = __importDefault(require("./db"));
+const client_1 = require("@prisma/client");
+const prisma = new client_1.PrismaClient();
 const port = 8080;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 // routes
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const data = yield db_1.default.query("SELECT * FROM resumes");
-        res.status(200).send(data.rows);
+        const allResumes = yield prisma.resume.findMany({
+            include: {
+                personal_details: {
+                    include: {
+                        fields: true
+                    }
+                }
+            }
+        });
+        res.status(200).send(allResumes);
     }
     catch (error) {
         console.log(error);
         res.sendStatus(500);
     }
 }));
-app.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, location } = req.body;
+app.get("/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        yield db_1.default.query("INSERT INTO resumes (name, address) VALUES ($1, $2)", [
-            name,
-            location,
-        ]);
-        res.status(200).send({ message: "Successfully added resume" });
+        const resume = yield prisma.resume.findUnique({
+            where: { id: req.params.id },
+            include: {
+                personal_details: {
+                    include: {
+                        fields: true
+                    }
+                }
+            }
+        });
+        res.status(200).send(resume);
     }
     catch (error) {
         console.log(error);
         res.sendStatus(500);
     }
 }));
-app.get("/setup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/resume", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("req.body", req.body);
+    const { resume_title, social_media, skills, employment_history, education, personal_details } = req.body;
     try {
-        yield db_1.default.query("CREATE TABLE resumes( id SERIAL PRIMARY KEY, name VARCHAR(100), address VARCHAR(100))");
+        const resume = yield prisma.resume.create({ data: {
+                resume_title,
+                social_media,
+                skills,
+                employment_history,
+                education,
+                personal_details: {
+                    create: Object.assign(Object.assign({}, personal_details), { fields: {
+                            createMany: {
+                                data: personal_details.fields
+                            }
+                        } })
+                },
+            } });
+        res.status(200).send({ message: `Successfully added resume`, id: resume.id });
     }
     catch (error) {
         console.log(error);

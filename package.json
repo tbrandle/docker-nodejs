@@ -5,21 +5,28 @@
   "main": "index.js",
   "scripts": {
     "build": "rimraf dist && npx tsc",
+    "prestart": "npm run build",
+    "start": "nodemon script.ts",
     "preserve": "npm run build",
     "serve": "concurrently \"npx tsc -w\" \"nodemon dist/server.js\"",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dbStart": "nodemon script.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^20.11.24"
+    "@prisma/client": "^5.10.2",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.24",
+    "@types/pg": "^8.11.2",
+    "express": "^4.18.3",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
-    "@types/pg": "^8.11.2",
     "concurrently": "^8.2.2",
     "nodemon": "^3.1.0",
+    "prisma": "^5.10.2",
     "rimraf": "^5.0.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

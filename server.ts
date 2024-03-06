@@ -1,5 +1,7 @@
 import express from "express";
 import pool from "./db";
+import { PrismaClient } from '@prisma/client'
+const prisma = new PrismaClient()
 
 const port = 8080;
 
@@ -9,34 +11,70 @@ app.use(express.json());
 // routes
 app.get("/", async (req, res) => {
   try {
-    const data = await pool.query("SELECT * FROM resumes");
-    res.status(200).send(data.rows);
+    const allResumes = await prisma.resume.findMany({ 
+      include: { 
+        personal_details: {
+          include: {
+            fields: true
+          }
+        }
+      }
+    });
+    res.status(200).send(allResumes);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
+  }
+});
+app.get("/:id", async (req, res) => {
+  try {
+    const resume = await prisma.resume.findUnique({
+      where:{ id: req.params.id },
+      include: { 
+        personal_details: {
+          include: {
+            fields: true
+          }
+        }
+      }
+    });
+    res.status(200).send(resume);
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
   }
 });
 
-app.post("/", async (req, res) => {
-  const { name, location } = req.body;
-  try {
-    await pool.query("INSERT INTO resumes (name, address) VALUES ($1, $2)", [
-      name,
-      location,
-    ]);
-    res.status(200).send({ message: "Successfully added resume" });
-  } catch (error) {
-    console.log(error);
-    console.log("###error");
-    res.sendStatus(500);
-  }
-});
+app.post("/resume", async (req, res) => {
+  console.log("req.body", req.body)
+  const { 
+    resume_title,
+    social_media,
+    skills,
+    employment_history,
+    education,
+    personal_details
+  } = req.body
 
-app.get("/setup", async (req, res) => {
   try {
-    await pool.query(
-      "CREATE TABLE resumes( id SERIAL PRIMARY KEY, name VARCHAR(100), address VARCHAR(100))"
-    );
+    const resume = await prisma.resume.create({ data: {
+      resume_title,
+      social_media,
+      skills,
+      employment_history,
+      education,
+      personal_details: {
+        create: { ...personal_details,  fields: {
+            createMany: {
+              data: personal_details.fields
+            }
+          }
+        }
+      },
+    } });
+    res.status(200).send({ message: `Successfully added resume`, id: resume.id });
+
+    
   } catch (error) {
     console.log(error);
     res.sendStatus(500);
