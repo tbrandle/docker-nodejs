@@ -1,6 +1,4 @@
 ###
-GET http://localhost:13000/setup
-###
 GET http://localhost:8080/ddb2bec9-d655-4de8-9671-39a88e661de7
 ###
 GET http://localhost:8080
