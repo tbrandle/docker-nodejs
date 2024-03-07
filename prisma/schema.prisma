@@ -11,37 +11,11 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("POSTGRES_URL")
+  url      = env("DATABASE_URL")
 }
 
 model Resume {
-  id                 String         @id @default(uuid())
-  resume_title       String
-  social_media       String
-  skills             String
-  employment_history String
-  education          String
-  personal_details   PeronalDetails @relation(fields: [peronalDetailsId], references: [id])
-  peronalDetailsId   String         @unique
+  id     String @id @default(uuid())
+  resume Json
 }
 
-model PeronalDetails {
-  id                   String  @id @default(uuid())
-  first_name           String
-  last_name            String
-  job_title            String
-  professional_summary String
-  phone_number         String
-  email                String
-  fields               Field[]
-  Resume               Resume?
-}
-
-model Field {
-  id               String          @id @default(uuid())
-  label            String
-  type             String
-  value            String
-  PeronalDetails   PeronalDetails? @relation(fields: [peronalDetailsId], references: [id])
-  peronalDetailsId String?
-}
