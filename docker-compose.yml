@@ -10,11 +10,11 @@ services:
       POSTGRES_DB: db123
     volumes:
       - resumeData:/var/lib/postgresql/data
-  app:
-    image: my-node-app
+  server:
+    image: resume-builder-backend
     ports:
-      - 13000:8080
+      - 8080:8080
     expose:
-      - 13000
+      - 8080
 volumes:
   resumeData:

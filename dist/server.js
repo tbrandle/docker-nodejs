@@ -14,10 +14,23 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const client_1 = require("@prisma/client");
+const cors_1 = __importDefault(require("cors"));
 const prisma = new client_1.PrismaClient();
 const port = 8080;
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
+const whitelist = ["http://localhost:3000"]; // assuming front-end application is running on localhost port 3000
+const corsOptions = {
+    origin: function (origin, callback) {
+        if (whitelist.indexOf(origin) !== -1) {
+            callback(null, true);
+        }
+        else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
+};
+app.use((0, cors_1.default)(corsOptions));
 app.get("/resumes", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const allResumes = yield prisma.resume.findMany();
@@ -28,12 +41,26 @@ app.get("/resumes", (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         res.sendStatus(500);
     }
 }));
+app.get("/resumes/list_ids", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const allResumes = yield prisma.resume.findMany();
+        res.status(200).send(allResumes.map(({ resume, id }) => {
+            const resumeObject = resume;
+            return { id, title: resumeObject.resume_title };
+        }));
+    }
+    catch (error) {
+        console.log(error);
+        res.sendStatus(500);
+    }
+}));
 app.get("/resumes/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const resume = yield prisma.resume.findUnique({
+        const response = yield prisma.resume.findUnique({
             where: { id: req.params.id },
         });
-        res.status(200).send(resume);
+        const resumeObj = response === null || response === void 0 ? void 0 : response.resume;
+        res.status(200).send(Object.assign(Object.assign({}, resumeObj), { id: response === null || response === void 0 ? void 0 : response.id }));
     }
     catch (error) {
         console.log(error);
